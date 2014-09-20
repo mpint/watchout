@@ -60,13 +60,21 @@ var WatchOut = (function(){
       var enemy = this.enemies[i];
       enemy.x = Math.random() * (this.width - 10) + 10;
       enemy.y = Math.random() * (this.height - 10) + 10;
+      var playerOffsetX =this.player.x - this.width/2;
+      var playerOffsetY =this.player.y - this.height/2;
+      enemy.x += playerOffsetX;
+      enemy.y += playerOffsetY;
+      enemy.x = enemy.x > 10 ? enemy.x : 10;
+      enemy.x = enemy.x < this.width-10 ? enemy.x : this.width-10;
+      enemy.y = enemy.y > 10 ? enemy.y : 10;
+      enemy.y = enemy.y < this.height-10 ? enemy.y : this.height-10;
     }
     this.slowDraw();
     score++;
     this.enemies.push(createEnemy());
     highScore = score > highScore ? score : highScore;
 
-    setTimeout(this.slowStep.bind(this), 3000);
+    setTimeout(this.slowStep.bind(this), 1500);
   };
 
   var hasAlreadyCountedThisCollision = false;
@@ -124,39 +132,61 @@ var WatchOut = (function(){
     if (this.svg === undefined) { return; }
 
     var circles = this.svg.selectAll('.enemy').data(this.enemies);
+    var lines = this.svg.selectAll('.trajectory').data(this.enemies);
+    // <line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
+
+
 
     // update
     circles.transition()
-           .duration(2750)
+           .duration(1500)
            .attr('cx', function (e) { return e.x; })
            .attr('cy', function (e) { return e.y; })
            .attr('fill', function (e) { return e.fill; })
            ;
-
+    lines
+      .attr('x1', function (e) { return e.x; })
+      .attr('y1', function (e) { return e.y; })
+      .transition()
+      .duration(300)
+      .attr('x2', function (e) { return e.x; })
+      .attr('y2', function (e) { return e.y; })
+         ;
     // entering
-    circles.enter().append('circle')
-           .attr('class', 'enemy')
-           .attr('fill', 'green')
-           .attr('r', 0)
-           .attr('stroke','black')
-           .attr('stroke-width',0)
-           .attr('cx', function (e) { return e.x; })
-           .style("fill-opacity", 1e-6)
-           .attr('cy', function (e) { return e.y-50; })
-           .attr('stroke-dasharray','5')
-           .transition()
-           .duration(500)
-           .style("fill-opacity", 1)
-           .attr('stroke-width',2)
-           .attr('r', function (e) { return e.r; })
-           .attr('cy', function (e) { return e.y; });
 
+    lines.enter().append('line')
+        .attr('class','trajectory')
+     .attr('x1', function (e) { return e.x; })
+     .attr('y1', function (e) { return e.y; })
+         .attr('x2', function (e) { return e.x; })
+         .attr('y2', function (e) { return e.y; })
+      .attr("stroke", '#999')
+      .attr('stroke-dasharray','10')
+      .attr('stroke-width',2);
+    circles.enter().append('circle')
+      .attr('class', 'enemy')
+      .attr('fill', 'green')
+      .attr('r', 0)
+      .attr('stroke','black')
+      .attr('stroke-width',0)
+      .attr('cx', function (e) { return e.x; })
+      .style("fill-opacity", 1e-6)
+      .attr('cy', function (e) { return e.y-50; })
+      .attr('stroke-dasharray','5')
+      .transition()
+      .duration(500)
+      .style("fill-opacity", 1)
+      .attr('stroke-width',2)
+      .attr('r', function (e) { return e.r; })
+      .attr('cy', function (e) { return e.y; });
 
     //exit
     circles.exit().transition()
            .duration(500)
            .style("fill-opacity", 1e-6)
            .attr('stroke-width',0)
+           .remove();
+    lines.exit().transition()
            .remove();
   };
 
