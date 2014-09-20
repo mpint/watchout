@@ -37,22 +37,33 @@ var WatchOut = (function(){
       .attr("width", this.width)
       .attr("height", this.height);
 
-    this.draw();
+    this.step();
   };
+  Arena.prototype.step = function () {
 
+    for(var i = 0; i < this.numEnemies; i++){
+      var enemy = this.enemies[i];
+      enemy.x = Math.random() * (this.width - 10) + 10;
+      enemy.y = Math.random() * (this.height - 10) + 10;
+    }
+    this.draw();
+    setTimeout(this.step.bind(this), 2000);
+  };
   Arena.prototype.draw = function () {
-
     if (this.svg === undefined) { return; }
 
     var circles = this.svg.selectAll('circle').data(this.enemies);
 //   <circle cx="50" cy="50" r="30" stroke="black" stroke-width="3" fill="red" />
-
+    console.log(circles);
     circles.enter().append('circle')
            .attr('fill', function (e) { return e.fill; })
-           .attr('cx', function (e) { return e.x; })
-           .attr('cy', function (e) { return e.y; })
            .attr('r', function (e) { return e.r; });
 
+    circles.transition()
+           .duration(1750)
+           .attr('cx', function (e) { return e.x; })
+           .attr('cy', function (e) { return e.y; })
+           ;
 
 
 
