@@ -8,3 +8,30 @@ svg {
   border-radius: 10px;
   background: #777;
 }
+.enemy {
+  animation: spin 2s infinite linear;
+  -webkit-animation: spin 2s infinite linear;
+  transform-origin: 50% 50%;
+  -webkit-transform-origin: 50% 50%;
+}
+.player {
+  animation: spin 1s infinite linear;
+  -webkit-animation: spin 1s infinite linear;
+  animation-direction: reverse;
+  -webkit-animation-direction: reverse;
+  transform-origin: 50% 50%;
+  -webkit-transform-origin: 50% 50%;
+}
+
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}

@@ -7,12 +7,16 @@ var WatchOut = (function(){
   var createEnemies = function(){
     var result = [], x, y;
     for(var i = 0; i < this.numEnemies; i++){
-      x = Math.random() * (this.width - 10) + 10;
-      y = Math.random() * (this.height - 10) + 10;
-      result.push(new Enemy(x,y,10));
+      result.push(createEnemy());
     }
     return result;
   };
+  var createEnemy = function(){
+
+    var x = Math.random() * (this.width - 10) + 10;
+    var y = Math.random() * (this.height - 10) + 10;
+    return new Enemy(x,y,10);
+  }
   var Player = function(x,y,r){
 
     this.r = r;
@@ -52,16 +56,17 @@ var WatchOut = (function(){
   };
   Arena.prototype.slowStep = function () {
 
-    for(var i = 0; i < this.numEnemies; i++){
+    for(var i = 0; i < this.enemies.length; i++){
       var enemy = this.enemies[i];
       enemy.x = Math.random() * (this.width - 10) + 10;
       enemy.y = Math.random() * (this.height - 10) + 10;
     }
     this.slowDraw();
     score++;
+    this.enemies.push(createEnemy());
     highScore = score > highScore ? score : highScore;
 
-    setTimeout(this.slowStep.bind(this), 2000);
+    setTimeout(this.slowStep.bind(this), 3000);
   };
 
   var hasAlreadyCountedThisCollision = false;
@@ -87,6 +92,8 @@ var WatchOut = (function(){
         collisions++;
       }
       hasAlreadyCountedThisCollision =true;
+
+    this.enemies = createEnemies.call(this);
       score = 0;
     }
       this.draw();
@@ -118,15 +125,39 @@ var WatchOut = (function(){
 
     var circles = this.svg.selectAll('.enemy').data(this.enemies);
 
-    circles.enter().append('circle')
-           .attr('class', 'enemy')
-           .attr('fill', function (e) { return e.fill; })
-           .attr('r', function (e) { return e.r; });
+    // update
     circles.transition()
-           .duration(1750)
+           .duration(2750)
            .attr('cx', function (e) { return e.x; })
            .attr('cy', function (e) { return e.y; })
+           .attr('fill', function (e) { return e.fill; })
            ;
+
+    // entering
+    circles.enter().append('circle')
+           .attr('class', 'enemy')
+           .attr('fill', 'green')
+           .attr('r', 0)
+           .attr('stroke','black')
+           .attr('stroke-width',0)
+           .attr('cx', function (e) { return e.x; })
+           .style("fill-opacity", 1e-6)
+           .attr('cy', function (e) { return e.y-50; })
+           .attr('stroke-dasharray','5')
+           .transition()
+           .duration(500)
+           .style("fill-opacity", 1)
+           .attr('stroke-width',2)
+           .attr('r', function (e) { return e.r; })
+           .attr('cy', function (e) { return e.y; });
+
+
+    //exit
+    circles.exit().transition()
+           .duration(500)
+           .style("fill-opacity", 1e-6)
+           .attr('stroke-width',0)
+           .remove();
   };
 
   Arena.prototype.draw = function () {
@@ -136,11 +167,15 @@ var WatchOut = (function(){
     circles.enter().append('circle')
            .attr('class', 'player')
            .attr('r', function (e) { return e.r; })
+           .attr('stroke','green')
+           .attr('stroke-width','2')
+           .attr('stroke-dasharray','4')
            .call(dragHandler(dragmove, dropHandler));
     circles
            .attr('fill', function (e) { return e.fill; })
            .attr('cx', function (e) { return e.x; })
            .attr('cy', function (e) { return e.y; });
+
 
     var scor = d3.selectAll('.current span').data([score]).text(function(d) { return d; });
     var high = d3.selectAll('.high span').data([highScore]).text(function(d) { return d; });
