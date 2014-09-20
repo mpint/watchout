@@ -29,7 +29,7 @@ var WatchOut = (function(){
     this.width = width;
     this.height = height;
     this.numEnemies = numEnemies;
-    this.player = new Player(width/2,height/2,10);
+    this.player = new Player(width / 2, height / 2,10);
     this.enemies = createEnemies.call(this);
   };
   /**
@@ -43,7 +43,6 @@ var WatchOut = (function(){
       .attr("width", this.width)
       .attr("height", this.height);
 
-    this.draw();
     this.slowStep();
     this.step();
   };
@@ -54,16 +53,28 @@ var WatchOut = (function(){
       enemy.x = Math.random() * (this.width - 10) + 10;
       enemy.y = Math.random() * (this.height - 10) + 10;
     }
+    this.slowDraw();
     setTimeout(this.slowStep.bind(this), 2000);
   };
   Arena.prototype.step = function () {
-
-  for(var i = 0; i < this.numEnemies; i++){
-    var enemy = this.enemies[i];
-    enemy.x = Math.random() * (this.width - 10) + 10;
-    enemy.y = Math.random() * (this.height - 10) + 10;
-  }
-  setTimeout(this.step.bind(this), 2000);
+    var collision = false;
+    var arr = this.svg.selectAll('.enemy')[0];
+    console.log('arr',arr);
+    for(var i = 0; i < arr.length; i++){
+      var enemy = d3.select(arr[i]);
+      var x = enemy.attr('cx');
+      var y = enemy.attr('cy');
+      // calculate distances and check collisions
+      var d = Math.sqrt( Math.pow(this.player.x - x, 2) + Math.pow(this.player.y - y, 2) );
+      // debugger;
+      if (d < +this.player.r + +enemy.attr('r') ) { collision = true; }
+    }
+    if (!collision) {
+      this.draw();
+    } else {
+      alert('gg u sux');
+    }
+    setTimeout(this.step.bind(this), 16);
 };
 
   var dragHandler = function (dragCallback, dropCallback) {
@@ -86,25 +97,34 @@ var WatchOut = (function(){
     .attr("y", d.y = d3.event.y);
   };
 
-  Arena.prototype.draw = function () {
+  Arena.prototype.slowDraw = function () {
     if (this.svg === undefined) { return; }
 
     var circles = this.svg.selectAll('.enemy').data(this.enemies);
-//   <circle cx="50" cy="50" r="30" stroke="black" stroke-width="3" fill="red" />
     console.log(circles);
     circles.enter().append('circle')
            .attr('class', 'enemy')
            .attr('fill', function (e) { return e.fill; })
-           .attr('r', function (e) { return e.r; })
-           .call(dragHandler(dragmove, dropHandler));
+           .attr('r', function (e) { return e.r; });
     circles.transition()
            .duration(1750)
            .attr('cx', function (e) { return e.x; })
            .attr('cy', function (e) { return e.y; })
            ;
+  };
 
+  Arena.prototype.draw = function () {
+    if (this.svg === undefined) { return; }
 
-
+    var circles = this.svg.selectAll('.player').data([this.player]);
+    circles.enter().append('circle')
+           .attr('class', 'player')
+           .attr('r', function (e) { return e.r; })
+           .call(dragHandler(dragmove, dropHandler));
+    circles
+           .attr('fill', function (e) { return e.fill; })
+           .attr('cx', function (e) { return e.x; })
+           .attr('cy', function (e) { return e.y; });
 
   };
   // To make a variable public, add it to our return statement.
