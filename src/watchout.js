@@ -1,4 +1,8 @@
 var WatchOut = (function(){
+
+  var score = 0;
+  var highScore = 0;
+  var collisions = 0;
   // private variables go here
   var createEnemies = function(){
     var result = [], x, y;
@@ -54,12 +58,16 @@ var WatchOut = (function(){
       enemy.y = Math.random() * (this.height - 10) + 10;
     }
     this.slowDraw();
+    score++;
+    highScore = score > highScore ? score : highScore;
+
     setTimeout(this.slowStep.bind(this), 2000);
   };
+
+  var hasAlreadyCountedThisCollision = false;
   Arena.prototype.step = function () {
-    var collision = false;
+    var collisioning = false;
     var arr = this.svg.selectAll('.enemy')[0];
-    console.log('arr',arr);
     for(var i = 0; i < arr.length; i++){
       var enemy = d3.select(arr[i]);
       var x = enemy.attr('cx');
@@ -67,12 +75,19 @@ var WatchOut = (function(){
       // calculate distances and check collisions
       var d = Math.sqrt( Math.pow(this.player.x - x, 2) + Math.pow(this.player.y - y, 2) );
       // debugger;
-      if (d < +this.player.r + +enemy.attr('r') ) { collision = true; }
+      if (d < +this.player.r + +enemy.attr('r') ) { collisioning = true; }
     }
-    if (!collision) {
+    if (!collisioning) {
+      // reset the flag.
+      hasAlreadyCountedThisCollision = false;
       this.player.fill = 'yellow';
     } else {
       this.player.fill = 'black';
+      if(!hasAlreadyCountedThisCollision){
+        collisions++;
+      }
+      hasAlreadyCountedThisCollision =true;
+      score = 0;
     }
       this.draw();
     setTimeout(this.step.bind(this), 16);
@@ -102,7 +117,7 @@ var WatchOut = (function(){
     if (this.svg === undefined) { return; }
 
     var circles = this.svg.selectAll('.enemy').data(this.enemies);
-    console.log(circles);
+
     circles.enter().append('circle')
            .attr('class', 'enemy')
            .attr('fill', function (e) { return e.fill; })
@@ -126,6 +141,11 @@ var WatchOut = (function(){
            .attr('fill', function (e) { return e.fill; })
            .attr('cx', function (e) { return e.x; })
            .attr('cy', function (e) { return e.y; });
+
+    var scor = d3.selectAll('.current span').data([score]).text(function(d) { return d; });
+    var high = d3.selectAll('.high span').data([highScore]).text(function(d) { return d; });
+    var collision = d3.selectAll('.collisions span').data([collisions]).text(function(d) { return d; });
+
 
   };
   // To make a variable public, add it to our return statement.
