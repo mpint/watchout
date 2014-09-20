@@ -70,10 +70,11 @@ var WatchOut = (function(){
       if (d < +this.player.r + +enemy.attr('r') ) { collision = true; }
     }
     if (!collision) {
-      this.draw();
+      this.player.fill = 'yellow';
     } else {
-      alert('gg u sux');
+      this.player.fill = 'black';
     }
+      this.draw();
     setTimeout(this.step.bind(this), 16);
 };
 
